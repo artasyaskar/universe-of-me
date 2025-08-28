@@ -7,6 +7,9 @@ module.exports = {
   darkMode: 'class',
   theme: {
     extend: {
+      textShadow: {
+        'glow-purple': '0 0 5px rgba(192, 132, 252, 0.5), 0 0 10px rgba(192, 132, 252, 0.5), 0 0 20px rgba(192, 132, 252, 0.4), 0 0 40px rgba(129, 140, 248, 0.4), 0 0 80px rgba(99, 102, 241, 0.3)',
+      },
       colors: {
         'galaxy': {
           '900': '#0f0f1a',
@@ -35,5 +38,6 @@ module.exports = {
   plugins: [
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
+    require('tailwindcss-textshadow'),
   ],
 }
