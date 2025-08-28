@@ -1,8 +1,6 @@
-import React, { Suspense, lazy, useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import React, { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 
 // Error Boundary Component
@@ -54,7 +52,6 @@ function App() {
   return (
     <Router>
       <div className="flex flex-col min-h-screen bg-gray-900 text-white">
-        <Navbar />
         <main className="flex-grow">
           <ErrorBoundary>
             <Suspense fallback={<LoadingScreen />}>
@@ -69,7 +66,6 @@ function App() {
             </Suspense>
           </ErrorBoundary>
         </main>
-        <Footer />
         <Toaster position="bottom-right" />
       </div>
     </Router>
