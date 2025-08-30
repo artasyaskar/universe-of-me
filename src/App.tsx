@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react';
+import { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import LoadingScreen from './components/LoadingScreen';
@@ -10,7 +10,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
