@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiAward, FiCheckCircle, FiLock } from 'react-icons/fi';
 import { getAllBadges, getUnlockedBadges } from '../services/supabase';

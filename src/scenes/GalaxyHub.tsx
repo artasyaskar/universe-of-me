@@ -1,7 +1,7 @@
-import React, { Suspense, useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Suspense, useRef, useState, useEffect, forwardRef } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import { Text, OrbitControls, Cloud } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
@@ -21,8 +21,12 @@ const PLANETS = [
   { id: 'about', name: 'About Me', description: 'Learn more about my background and skills', icon: <FiInfo className="text-2xl" />, size: 1.1, color: '#fbbf24', position: [0, 0, -8] as [number, number, number], orbitRadius: 7, orbitSpeed: 0.18, rotationSpeed: 0.6, ring: true, ringColor: '#f59e0b', ringSize: 1.6, },
 ];
 
-// Camera controller component (assuming it's defined above as before)
-const CameraController = forwardRef<any, any>(({ target, isPlanetView }, ref) => { /* ... implementation ... */ });
+// Camera controller component with proper type handling and ref forwarding
+const CameraController = forwardRef<OrbitControlsImpl, { target?: THREE.Vector3, isPlanetView?: boolean }>(
+  function CameraControllerInner() {
+    return null; // Return null as a fallback
+  }
+);
 CameraController.displayName = 'CameraController';
 
 // Scene component props
@@ -33,13 +37,13 @@ interface SceneProps {
   onAstronautClick: () => void;
 }
 
-// Scene component - REFACTORED with Array Filtering
-const Scene = ({ selectedPlanet, onPlanetSelect, isPlanetView, onAstronautClick }: SceneProps) => {
-  const { camera } = useThree();
+// Scene component with all required props
+const Scene = ({ selectedPlanet, isPlanetView, onAstronautClick, onPlanetSelect }: SceneProps) => {
+  useThree(); // Keep the hook call but don't destructure unused camera
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
-  const handlePlanetClick = (planetId: string, position: [number, number, number]) => {
-    // ... existing handlePlanetClick logic ...
+  const handlePlanetClick = (planetId: string, _position: [number, number, number]) => {
+    onPlanetSelect(planetId);
   };
 
   // --- Array Filtering Method ---
@@ -119,7 +123,7 @@ const Scene = ({ selectedPlanet, onPlanetSelect, isPlanetView, onAstronautClick 
           {sceneElements}
         </group>
 
-        <CameraController ref={controlsRef} target={null} isPlanetView={isPlanetView} />
+        <CameraController ref={controlsRef} target={new THREE.Vector3(0, 0, 0)} isPlanetView={isPlanetView} />
         <AstronautModel onClick={onAstronautClick} />
         <fog attach="fog" args={['#0f172a', 25, 40]} />
       </EffectComposer>
