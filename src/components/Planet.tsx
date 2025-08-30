@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Text } from '@react-three/drei';
@@ -33,22 +33,11 @@ export default function Planet({
   ring = false,
   ringColor = '#ffffff',
   ringSize = 1.5,
-  rotationSpeed = 0.01,
 }: PlanetProps) {
   const ringRef = useRef<THREE.Mesh>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const orbitRef = useRef<THREE.Group>(null);
-  const [hovered, setHover] = useState(false);
-
-  // Planet material with standard material
-  const material = useMemo(() => new THREE.MeshStandardMaterial({
-    color: new THREE.Color(color),
-    roughness: 0.8,
-    metalness: 0.2,
-    bumpScale: 0.1,
-    emissive: color,
-    emissiveIntensity: 0.1
-  }), [color]);
+  const [hovered, setHovered] = useState(false);
 
   // Generate random features for the planet
   const features = useMemo(() => ({
@@ -70,8 +59,6 @@ export default function Planet({
     }
   });
 
-  // Calculate glow intensity based on hover/selection
-  const glowIntensity = hovered || isSelected ? 1.5 : 0.5;
   const glowScale = hovered || isSelected ? 1.2 : 1;
 
   return (
@@ -81,31 +68,20 @@ export default function Planet({
         <mesh
           ref={meshRef}
           onClick={onClick}
-          onPointerOver={() => setHover(true)}
-          onPointerOut={() => setHover(false)}
+          onPointerOver={() => setHovered(true)}
+          onPointerOut={() => setHovered(false)}
           scale={glowScale}
           castShadow
           receiveShadow
         >
           <sphereGeometry args={[size, 32, 32]} />
           <meshStandardMaterial
-            color={isSelected ? '#ffffff' : color}
-            emissive={isSelected ? new THREE.Color(color).multiplyScalar(0.5) : undefined}
-            emissiveIntensity={isSelected ? 1 : 0}
+            color={color}
+            emissive={color}
+            emissiveIntensity={hovered || isSelected ? 1.5 : 0.5}
             roughness={0.7}
             metalness={0.3}
-          />
-        </mesh>
-
-        {/* Glow effect */}
-        <mesh scale={size * 1.5}>
-          <sphereGeometry args={[1, 32, 32]} />
-          <meshBasicMaterial
-            color={color}
-            transparent
-            opacity={glowIntensity * 0.1}
-            blending={THREE.AdditiveBlending}
-            side={THREE.BackSide}
+            toneMapped={false}
           />
         </mesh>
 
