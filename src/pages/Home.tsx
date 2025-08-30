@@ -1,8 +1,7 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
-import StarField from '../components/StarField';
+import StarSystem from '../components/StarSystem';
 import SidebarNav from '../components/SidebarNav';
 import HomeFooter from '../components/HomeFooter';
 import { FiArrowRight } from 'react-icons/fi';
@@ -36,7 +35,7 @@ const Home: React.FC = () => {
       {/* 3D Background */}
       <div className="absolute inset-0 z-0">
         <Canvas camera={{ position: [0, 0, 1] }}>
-          <StarField />
+          <StarSystem />
         </Canvas>
       </div>
 
