@@ -1,12 +1,26 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
+import { portfolioConfig } from '../config';
 import StarSystem from '../components/StarSystem';
 import SidebarNav from '../components/SidebarNav';
 import HomeFooter from '../components/HomeFooter';
+import { AstronautModel, AstronautChatUI } from '../components/AstronautAI';
+import FeaturedPlanets from '../components/FeaturedPlanets';
 import { FiArrowRight } from 'react-icons/fi';
 
 const Home: React.FC = () => {
+  const [isChatOpen, setChatOpen] = useState(false);
+
+  const handleAstronautClick = () => {
+    setChatOpen(true);
+  };
+
+  const handleCloseChat = () => {
+    setChatOpen(false);
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -35,7 +49,10 @@ const Home: React.FC = () => {
       {/* 3D Background */}
       <div className="absolute inset-0 z-0">
         <Canvas camera={{ position: [0, 0, 1] }}>
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[5, 5, 5]} intensity={1} />
           <StarSystem />
+          <AstronautModel onClick={handleAstronautClick} />
         </Canvas>
       </div>
 
@@ -54,7 +71,7 @@ const Home: React.FC = () => {
           <div className="w-40 h-40 rounded-full p-1 bg-gradient-to-br from-purple-500 to-blue-500 relative">
             <div className="absolute inset-0 rounded-full bg-purple-500/50 blur-xl"></div>
             <img
-              src="https://i.pravatar.cc/160?u=a042581f4e29026704d"
+              src={portfolioConfig.profileImage}
               alt="Profile Avatar"
               className="w-full h-full rounded-full object-cover border-4 border-gray-900"
             />
@@ -66,7 +83,7 @@ const Home: React.FC = () => {
           variants={itemVariants}
           className="text-5xl sm:text-6xl md:text-7xl font-bold font-orbitron mb-4 text-shadow-glow-purple"
         >
-          Hi, I’m [Your Name]
+          Hi, I’m {portfolioConfig.name}
         </motion.h1>
 
         {/* Tagline */}
@@ -74,7 +91,7 @@ const Home: React.FC = () => {
           variants={itemVariants}
           className="text-lg sm:text-xl text-gray-300 font-rajdhani max-w-2xl mb-10"
         >
-          Problem Solver | Crafting Exceptional Digital Experiences
+          {portfolioConfig.tagline}
         </motion.p>
 
         {/* CTA Buttons */}
@@ -84,24 +101,28 @@ const Home: React.FC = () => {
         >
           <Link
             to="/galaxy"
-            className="group relative inline-block px-8 py-4 text-lg font-bold text-white uppercase tracking-wider overflow-hidden rounded-md bg-purple-600/80 backdrop-blur-sm border-2 border-purple-500"
+            className="cta-button cta-button-primary group"
           >
             <span className="relative z-10 flex items-center">
               Explore My Universe
               <FiArrowRight className="ml-2 transition-transform duration-300 group-hover:translate-x-2" />
             </span>
-            <div className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 scale-150 blur-xl"></div>
           </Link>
 
           <Link
             to="/contact"
-            className="group relative inline-block px-8 py-4 text-lg font-bold text-white uppercase tracking-wider overflow-hidden rounded-md bg-transparent border-2 border-blue-500"
+            className="cta-button cta-button-secondary group"
           >
             <span className="relative z-10">Contact Me</span>
-            <div className="absolute inset-0 bg-blue-500/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 scale-150 blur-md"></div>
           </Link>
         </motion.div>
       </motion.main>
+
+      {/* Featured Planets Section */}
+      <FeaturedPlanets />
+
+      {/* Chat UI */}
+      <AstronautChatUI isOpen={isChatOpen} onClose={handleCloseChat} />
 
       {/* Footer */}
       <HomeFooter />
