@@ -113,6 +113,46 @@ p, li, a, button, input, textarea, select {
   animation: glow 2s ease-in-out infinite alternate;
 }
 
+/* --- Custom CTA Button Styles --- */
+.cta-button {
+  @apply relative inline-block px-8 py-4 text-lg font-bold text-white uppercase tracking-wider overflow-hidden rounded-md transition-all duration-300;
+}
+
+.cta-button-primary {
+  @apply bg-purple-600/80 backdrop-blur-sm border-2 border-purple-500;
+}
+.cta-button-primary:hover {
+  @apply shadow-lg shadow-purple-500/30;
+}
+
+.cta-button-secondary {
+  @apply bg-transparent border-2 border-blue-500;
+}
+.cta-button-secondary:hover {
+  @apply shadow-lg shadow-blue-500/30;
+}
+
+/* Shiny effect on hover */
+.cta-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: all 0.6s;
+}
+
+.cta-button:hover::before {
+  left: 100%;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .container {
