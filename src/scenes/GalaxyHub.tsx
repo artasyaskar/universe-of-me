@@ -5,29 +5,16 @@ import { Text } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
-import { FiArrowLeft, FiGlobe, FiCode, FiCpu, FiInfo, FiGithub, FiLinkedin, FiMail, FiAward } from 'react-icons/fi';
+import { FiArrowLeft, FiGithub, FiLinkedin, FiMail, FiAward } from 'react-icons/fi';
 import LoadingScreen from '../components/LoadingScreen';
 import StarSystem from '../components/StarSystem';
 import Planet from '../components/Planet';
 import { AstronautModel, AstronautChatUI } from '../components/AstronautAI';
 import BadgeSystem from '../components/BadgeSystem';
 import { useNavigate } from 'react-router-dom';
-
-// Planet data configuration (assuming it's defined above as before)
-const PLANETS = [
-  { id: 'frontend', name: 'Frontend', description: 'Explore my frontend development projects and skills', icon: <FiCode className="text-2xl" />, size: 1.2, color: '#60a5fa', position: [8, 0, 0] as [number, number, number], orbitRadius: 10, orbitSpeed: 0.1, rotationSpeed: 0.5, ring: true, ringColor: '#3b82f6', ringSize: 1.8, },
-  { id: 'ai', name: 'AI & ML', description: 'Discover my work in Artificial Intelligence and Machine Learning', icon: <FiCpu className="text-2xl" />, size: 1.4, color: '#f472b6', position: [-6, 0, 6] as [number, number, number], orbitRadius: 8, orbitSpeed: 0.15, rotationSpeed: 0.4, ring: true, ringColor: '#ec4899', ringSize: 2.0, },
-  { id: 'projects', name: 'Projects', description: 'Check out my portfolio of completed projects', icon: <FiGlobe className="text-2xl" />, size: 1.3, color: '#34d399', position: [0, 0, 8] as [number, number, number], orbitRadius: 9, orbitSpeed: 0.12, rotationSpeed: 0.3, ring: true, ringColor: '#10b981', ringSize: 2.2, },
-  { id: 'about', name: 'About Me', description: 'Learn more about my background and skills', icon: <FiInfo className="text-2xl" />, size: 1.1, color: '#fbbf24', position: [0, 0, -8] as [number, number, number], orbitRadius: 7, orbitSpeed: 0.18, rotationSpeed: 0.6, ring: true, ringColor: '#f59e0b', ringSize: 1.6, },
-];
-
-// Camera controller component with proper type handling and ref forwarding
-const CameraController = forwardRef<OrbitControlsImpl, { target?: THREE.Vector3, isPlanetView?: boolean }>(
-  function CameraControllerInner() {
-    return null; // Return null as a fallback
-  }
-);
-CameraController.displayName = 'CameraController';
+import { GALAXY_PLANETS } from '../data/galaxyPlanets';
+import CtaButton from '../components/CtaButton';
+import CameraController from '../components/CameraController';
 
 // Scene component props
 interface SceneProps {
@@ -39,11 +26,16 @@ interface SceneProps {
 
 // Scene component with all required props
 const Scene = ({ selectedPlanet, isPlanetView, onAstronautClick, onPlanetSelect }: SceneProps) => {
-  useThree(); // Keep the hook call but don't destructure unused camera
+  const { camera } = useThree();
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
-  const handlePlanetClick = (planetId: string, _position: [number, number, number]) => {
+  const handlePlanetClick = (planetId: string, position: [number, number, number]) => {
     onPlanetSelect(planetId);
+    if (controlsRef.current) {
+      const target = new THREE.Vector3(...position);
+      camera.position.set(target.x, target.y + 2, target.z + 5);
+      controlsRef.current.target.copy(target);
+    }
   };
 
   // --- Array Filtering Method ---
@@ -63,7 +55,7 @@ const Scene = ({ selectedPlanet, isPlanetView, onAstronautClick, onPlanetSelect 
     ) : null,
 
     // Planets, their orbits, and labels
-    ...PLANETS.flatMap((planet) => {
+    ...GALAXY_PLANETS.flatMap((planet) => {
       const isSelected = selectedPlanet === planet.id;
       return [
         <Planet
@@ -123,7 +115,11 @@ const Scene = ({ selectedPlanet, isPlanetView, onAstronautClick, onPlanetSelect 
           {sceneElements}
         </group>
 
-        <CameraController ref={controlsRef} target={new THREE.Vector3(0, 0, 0)} isPlanetView={isPlanetView} />
+        <CameraController
+          ref={controlsRef}
+          target={selectedPlanetData ? new THREE.Vector3(...selectedPlanetData.position) : new THREE.Vector3(0, 0, 0)}
+          isPlanetView={isPlanetView}
+        />
         <AstronautModel onClick={onAstronautClick} />
         <fog attach="fog" args={['#0f172a', 25, 40]} />
       </EffectComposer>
@@ -160,7 +156,7 @@ const GalaxyHub = () => {
     setShowNav(!isViewingPlanet);
   };
 
-  const selectedPlanetData = PLANETS.find(p => p.id === selectedPlanet);
+  const selectedPlanetData = GALAXY_PLANETS.find(p => p.id === selectedPlanet);
 
   if (!mounted) {
     return <LoadingScreen />;
@@ -175,11 +171,12 @@ const GalaxyHub = () => {
           dpr={Math.min(window.devicePixelRatio, 2)}
           className="z-0"
         >
-          <Scene 
+          <Scene
             selectedPlanet={selectedPlanet}
             onPlanetSelect={handlePlanetSelect}
             isPlanetView={isPlanetView}
             onAstronautClick={() => setIsChatOpen(true)}
+            selectedPlanetData={selectedPlanetData}
           />
         </Canvas>
       </Suspense>
@@ -244,14 +241,13 @@ const GalaxyHub = () => {
                   <p className="text-gray-300 mb-4">
                     {selectedPlanetData.description}
                   </p>
-                  <motion.button
+                  <CtaButton
                     onClick={() => handlePlanetSelect(null)}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full border border-white/20 flex items-center mx-auto md:mx-0"
+                    variant="secondary"
+                    className="mx-auto md:mx-0"
                   >
                     <FiArrowLeft className="mr-2" /> Back to Galaxy
-                  </motion.button>
+                  </CtaButton>
                 </div>
               </div>
             </div>
