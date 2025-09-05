@@ -1,5 +1,5 @@
 import { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import LoadingScreen from './components/LoadingScreen';
 
@@ -48,27 +48,35 @@ const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
+const router = createBrowserRouter(
+  [
+    { path: '/', element: <Home /> },
+    { path: '/galaxy', element: <Galaxy /> },
+    { path: '/planet/:id', element: <Planet /> },
+    { path: '/about', element: <About /> },
+    { path: '/contact', element: <Contact /> },
+    { path: '*', element: <NotFound /> },
+  ],
+  {
+    future: {
+      v7_startTransition: true,
+      v7_relativeSplatPath: true,
+    },
+  }
+);
+
 function App() {
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen bg-gray-900 text-white">
-        <main className="flex-grow">
-          <ErrorBoundary>
-            <Suspense fallback={<LoadingScreen />}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/galaxy" element={<Galaxy />} />
-                <Route path="/planet/:id" element={<Planet />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </ErrorBoundary>
-        </main>
-        <Toaster position="bottom-right" />
-      </div>
-    </Router>
+    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+      <main className="flex-grow">
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingScreen />}>
+            <RouterProvider router={router} />
+          </Suspense>
+        </ErrorBoundary>
+      </main>
+      <Toaster position="bottom-right" />
+    </div>
   );
 }
 
