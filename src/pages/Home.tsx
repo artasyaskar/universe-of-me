@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
@@ -8,7 +9,7 @@ import SidebarNav from '../components/SidebarNav';
 import HomeFooter from '../components/HomeFooter';
 import { AstronautModel, AstronautChatUI } from '../components/AstronautAI';
 import FeaturedPlanets from '../components/FeaturedPlanets';
-import { FiArrowRight } from 'react-icons/fi';
+import CtaButton from '../components/CtaButton';
 
 const Home: React.FC = () => {
   const [isChatOpen, setChatOpen] = useState(false);
@@ -99,21 +100,11 @@ const Home: React.FC = () => {
           variants={itemVariants}
           className="flex flex-col sm:flex-row items-center justify-center gap-6"
         >
-          <Link
-            to="/galaxy"
-            className="cta-button cta-button-primary group"
-          >
-            <span className="relative z-10 flex items-center">
-              Explore My Universe
-              <FiArrowRight className="ml-2 transition-transform duration-300 group-hover:translate-x-2" />
-            </span>
+          <Link to="/galaxy">
+            <CtaButton variant="primary">Explore My Universe</CtaButton>
           </Link>
-
-          <Link
-            to="/contact"
-            className="cta-button cta-button-secondary group"
-          >
-            <span className="relative z-10">Contact Me</span>
+          <Link to="/contact">
+            <CtaButton variant="secondary">Contact Me</CtaButton>
           </Link>
         </motion.div>
       </motion.main>
