@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX, FiHome, FiInfo, FiMail, FiGlobe } from 'react-icons/fi';
+import { FiMenu, FiX, FiHome, FiInfo, FiMail, FiGlobe, FiVolume2, FiVolumeX } from 'react-icons/fi';
+import soundManager from '../services/soundManager';
 
 const SidebarNav: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(soundManager.getMuteState());
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
+    soundManager.play('click');
+  };
+
+  const toggleMute = () => {
+    const newMuteState = soundManager.toggleMute();
+    setIsMuted(newMuteState);
   };
 
   const sidebarVariants = {
@@ -103,6 +111,20 @@ const SidebarNav: React.FC = () => {
                   </motion.div>
                 ))}
               </motion.nav>
+
+              {/* Sound Toggle */}
+              <motion.div
+                variants={itemVariants}
+                className="absolute bottom-8 left-8"
+              >
+                <button
+                  onClick={toggleMute}
+                  className="flex items-center space-x-4 text-xl text-gray-300 hover:text-white w-full p-3 rounded-lg transition-all duration-200"
+                >
+                  {isMuted ? <FiVolumeX /> : <FiVolume2 />}
+                  <span>{isMuted ? 'Unmute' : 'Mute'}</span>
+                </button>
+              </motion.div>
             </motion.div>
           </>
         )}
