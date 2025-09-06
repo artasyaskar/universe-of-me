@@ -54,13 +54,14 @@ const SortableItem = ({ item }: { item: ComponentItem }) => {
 };
 
 // --- Main UI Puzzle Component ---
-const UIPuzzle = () => {
-  const initialItems: ComponentItem[] = [
-    { id: 'header', name: 'Header', icon: <FiEye size={20} /> },
-    { id: 'sidebar', name: 'Sidebar', icon: <FiCode size={20} /> },
-    { id: 'card', name: 'Image Card', icon: <FiImage size={20} /> },
-  ];
 
+const initialItems: ComponentItem[] = [
+  { id: 'header', name: 'Header', icon: <FiEye size={20} /> },
+  { id: 'sidebar', name: 'Sidebar', icon: <FiCode size={20} /> },
+  { id: 'card', name: 'Image Card', icon: <FiImage size={20} /> },
+];
+
+const UIPuzzle = () => {
   const [items, setItems] = useState<ComponentItem[]>(initialItems);
   const sensors = useSensors(useSensor(PointerSensor));
 
