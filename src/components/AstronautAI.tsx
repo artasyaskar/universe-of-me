@@ -71,6 +71,7 @@ interface Message {
 interface AstronautChatUIProps {
   isOpen: boolean;
   onClose: () => void;
+  selectedPlanetId: string | null;
 }
 
 const TypingIndicator = () => (
@@ -98,7 +99,7 @@ const TypingIndicator = () => (
   </motion.div>
 );
 
-export function AstronautChatUI({ isOpen, onClose }: AstronautChatUIProps) {
+export function AstronautChatUI({ isOpen, onClose, selectedPlanetId }: AstronautChatUIProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       text: "Greetings, traveler! I am the AI guide of this universe. Ask me anything about the portfolio!",
@@ -124,7 +125,7 @@ export function AstronautChatUI({ isOpen, onClose }: AstronautChatUIProps) {
     setIsLoading(true);
 
     try {
-      const aiResponseText = await getAIResponse(inputValue);
+      const aiResponseText = await getAIResponse(inputValue, selectedPlanetId);
       const aiMessage: Message = { text: aiResponseText, sender: 'ai' };
       setTimeout(() => {
         soundManager.play('receive');
