@@ -13,6 +13,15 @@ An interactive 3D portfolio experience where visitors can explore different aspe
 - **Smooth Animations**: Powered by Framer Motion
 - **Dark Mode**: Eye-friendly dark theme with vibrant accents
 
+### New Enhancements
+- Cinematic landing page with starfield and glowing CTA
+- HUD mini‑map with clickable planets and keyboard navigation (←/→, Enter, Esc)
+- Immersive visuals: nebula backdrop, comets, asteroid belt, atmospheric planet glow
+- Content modal with tabs (About, Skills, Projects, Contact) and rich media
+- Theme modes: Galaxy, Neon Grid, Minimal (toggle in galaxy navbar)
+- Adaptive performance: dynamic DPR/events, code‑splitting, vendor chunking
+- SEO/OG meta tags and improved ARIA labels
+
 ## 🛠 Tech Stack
 
 - **Frontend**: React 18 + TypeScript + Vite
@@ -43,7 +52,8 @@ An interactive 3D portfolio experience where visitors can explore different aspe
    ```env
    VITE_SUPABASE_URL=your_supabase_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   VITE_AI_API_KEY=your_ai_api_key
+   VITE_AI_ENDPOINT=https://your-ai-endpoint.example.com  # optional
+   VITE_AI_API_KEY=your_ai_api_key                        # optional
    ```
 
 4. **Start the development server**
@@ -61,6 +71,7 @@ An interactive 3D portfolio experience where visitors can explore different aspe
 2. Import the repository to Vercel
 3. Add your environment variables in the Vercel dashboard
 4. Deploy!
+   SPA rewrites are included via `public/vercel.json`.
 
 ### Netlify
 1. Push your code to a Git repository
@@ -103,6 +114,15 @@ universe-of-me/
 3. **Content**
    - Update planet content in `src/pages/Planet.tsx`
    - Add new components in `src/components/`
+
+## ⌨️ Keyboard Controls
+- Arrow Left/Right: cycle planets
+- Enter: open selected planet
+- Escape: close planet/modal
+
+## 🎛 Theming
+- Toggle between Galaxy, Neon Grid, and Minimal in the galaxy navbar.
+- Root classes applied: `theme-galaxy` (default), `theme-neon`, `theme-minimal`.
 
 ## 🤝 Contributing
 

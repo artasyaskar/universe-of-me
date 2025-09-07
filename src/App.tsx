@@ -2,6 +2,7 @@ import { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import LoadingScreen from './components/LoadingScreen';
+import { ThemeProvider } from './context/ThemeProvider';
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -67,16 +68,18 @@ const router = createBrowserRouter(
 
 function App() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
-      <main className="flex-grow">
-        <ErrorBoundary>
-          <Suspense fallback={<LoadingScreen />}>
-            <RouterProvider router={router} />
-          </Suspense>
-        </ErrorBoundary>
-      </main>
-      <Toaster position="bottom-right" />
-    </div>
+    <ThemeProvider>
+      <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+        <main className="flex-grow">
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingScreen />}>
+              <RouterProvider router={router} />
+            </Suspense>
+          </ErrorBoundary>
+        </main>
+        <Toaster position="bottom-right" />
+      </div>
+    </ThemeProvider>
   );
 }
 

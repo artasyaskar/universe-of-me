@@ -12,14 +12,35 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
+  background:
+    radial-gradient(1200px 600px at -10% -10%, rgba(99,102,241,0.15), transparent 60%),
+    radial-gradient(1000px 500px at 110% -10%, rgba(236,72,153,0.12), transparent 60%),
+    radial-gradient(800px 400px at 50% 110%, rgba(20,184,166,0.10), transparent 60%),
+    linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
     rgb(var(--background-start-rgb));
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* Theme variants */
+.theme-galaxy body {
+  background:
+    radial-gradient(1200px 600px at -10% -10%, rgba(99,102,241,0.15), transparent 60%),
+    radial-gradient(1000px 500px at 110% -10%, rgba(236,72,153,0.12), transparent 60%),
+    radial-gradient(800px 400px at 50% 110%, rgba(20,184,166,0.10), transparent 60%),
+    linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
+    rgb(var(--background-start-rgb));
+}
+
+.theme-neon body {
+  background:
+    radial-gradient(1000px 500px at 20% 10%, rgba(16,185,129,0.18), transparent 60%),
+    radial-gradient(800px 400px at 80% 20%, rgba(59,130,246,0.18), transparent 60%),
+    linear-gradient(160deg, #0b0f19 0%, #0a0a10 100%);
+}
+
+.theme-minimal body {
+  background: linear-gradient(180deg, #0f1117 0%, #0b0d12 100%);
 }
 
 /* Custom Scrollbar */
@@ -101,7 +122,7 @@ p, li, a, button, input, textarea, select {
 
 /* Card Styles */
 .card {
-  @apply bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300;
+  @apply bg-gray-800/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/40 hover:border-blue-500/60 transition-all duration-300 shadow-[0_0_0_0_rgba(0,0,0,0)] hover:shadow-[0_0_30px_0_rgba(59,130,246,0.25)];
 }
 
 /* Animation Classes */
@@ -111,6 +132,68 @@ p, li, a, button, input, textarea, select {
 
 .animate-glow {
   animation: glow 2s ease-in-out infinite alternate;
+}
+
+/* Glass Utilities */
+.glass {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl;
+}
+
+/* Gradient Text Utilities */
+.text-gradient-purple {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-fuchsia-400 to-indigo-400;
+}
+.text-gradient-blue {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400;
+}
+
+/* Button Presets */
+.btn-gradient {
+  @apply relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white uppercase tracking-wider overflow-hidden rounded-full transition-all duration-300;
+  background-image: linear-gradient(90deg, #7c3aed, #2563eb, #06b6d4);
+  background-size: 200% 100%;
+}
+.btn-gradient:hover { background-position: 100% 0; }
+.btn-outline {
+  @apply border-2 border-blue-500/70 hover:bg-blue-500/10 rounded-full transition-all duration-300;
+}
+
+/* Accent orbs */
+.orb {
+  position: absolute;
+  width: 28rem;
+  height: 28rem;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.3;
+}
+.orb-purple { background: radial-gradient(circle at 30% 30%, rgba(168,85,247,0.7), transparent 60%); }
+.orb-blue { background: radial-gradient(circle at 70% 30%, rgba(59,130,246,0.6), transparent 60%); }
+.orb-teal { background: radial-gradient(circle at 50% 70%, rgba(45,212,191,0.6), transparent 60%); }
+
+/* Tilting cards */
+.tilt {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+.tilt:hover .tilt-inner {
+  transform: translateZ(14px);
+}
+
+/* Subtle borders */
+.border-gradient {
+  position: relative;
+}
+.border-gradient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  padding: 1px;
+  background: linear-gradient(90deg, rgba(59,130,246,0.4), rgba(147,51,234,0.4));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
 }
 
 

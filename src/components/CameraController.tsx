@@ -18,12 +18,12 @@ const CameraController = forwardRef<OrbitControlsImpl, CameraControllerProps>(
       if (internalControlsRef.current) {
         if (isPlanetView) {
           // Smoothly move camera to the planet
-          camera.position.lerp(target.clone().add(new THREE.Vector3(0, 2, 5)), 0.05);
-          internalControlsRef.current.target.lerp(target, 0.05);
+          camera.position.lerp(target.clone().add(new THREE.Vector3(0, 2, 5)), 0.08);
+          internalControlsRef.current.target.lerp(target, 0.08);
         } else {
           // Smoothly return to galaxy view
-          camera.position.lerp(new THREE.Vector3(0, 10, 25), 0.05);
-          internalControlsRef.current.target.lerp(new THREE.Vector3(0, 0, 0), 0.05);
+          camera.position.lerp(new THREE.Vector3(0, 10, 25), 0.06);
+          internalControlsRef.current.target.lerp(new THREE.Vector3(0, 0, 0), 0.06);
         }
         internalControlsRef.current.update();
       }

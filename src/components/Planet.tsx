@@ -38,6 +38,7 @@ export default function Planet({
   const meshRef = useRef<THREE.Mesh>(null);
   const orbitRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
+  const glowRef = useRef<THREE.Mesh>(null);
 
   // Generate random features for the planet
   const features = useMemo(() => ({
@@ -57,9 +58,13 @@ export default function Planet({
         orbitRef.current.position.z = Math.cos(time) * orbitRadius;
       }
     }
+    if (glowRef.current && (hovered || isSelected)) {
+      const pulse = 1 + Math.sin(clock.getElapsedTime() * 3) * 0.05;
+      glowRef.current.scale.setScalar(pulse * (size * 1.1));
+    }
   });
 
-  const glowScale = hovered || isSelected ? 1.2 : 1;
+  const glowScale = hovered || isSelected ? 1.15 : 1;
 
   return (
     <group position={position} ref={orbitRef}>
@@ -83,6 +88,12 @@ export default function Planet({
             metalness={0.3}
             toneMapped={false}
           />
+        </mesh>
+
+        {/* Atmospheric glow */}
+        <mesh ref={glowRef} scale={glowScale * 1.1}>
+          <sphereGeometry args={[size * 1.1, 32, 32]} />
+          <meshBasicMaterial color={color} transparent opacity={0.08} blending={THREE.AdditiveBlending} />
         </mesh>
 
         {/* Ring */}
@@ -111,7 +122,7 @@ export default function Planet({
           lineHeight={1}
           letterSpacing={0.1}
           textAlign="center"
-          font="https://fonts.gstatic.com/s/orbitron/v25/yMJMMIlzdpv1Qf1BwM1csTg.woff"
+          // Use default font to avoid external font load failures
           anchorX="center"
           anchorY="middle"
           outlineWidth={0.01}

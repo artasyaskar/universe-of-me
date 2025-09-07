@@ -1,11 +1,12 @@
-import { Suspense, useRef, useState, useEffect, forwardRef } from 'react';
+import { Suspense, useRef, useState, useEffect, lazy } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import { Text } from '@react-three/drei';
+import { Text, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { FiArrowLeft, FiGithub, FiLinkedin, FiMail, FiAward } from 'react-icons/fi';
+import { useTheme } from '../context/ThemeProvider';
 import LoadingScreen from '../components/LoadingScreen';
 import StarSystem from '../components/StarSystem';
 import Planet from '../components/Planet';
@@ -14,7 +15,13 @@ import BadgeSystem from '../components/BadgeSystem';
 import { useNavigate } from 'react-router-dom';
 import { GALAXY_PLANETS } from '../data/galaxyPlanets';
 import CtaButton from '../components/CtaButton';
+import MiniMapHUD from '../components/MiniMapHUD';
 import CameraController from '../components/CameraController';
+const ContentModal = lazy(() => import('../components/ContentModal'));
+const NebulaBackdrop = lazy(() => import('../components/visuals/NebulaBackdrop'));
+const Comets = lazy(() => import('../components/visuals/Comets'));
+const AsteroidBelt = lazy(() => import('../components/visuals/AsteroidBelt'));
+import KeyboardNavigator from '../components/KeyboardNavigator';
 
 // Scene component props
 interface SceneProps {
@@ -22,10 +29,11 @@ interface SceneProps {
   onPlanetSelect: (planetId: string | null) => void;
   isPlanetView: boolean;
   onAstronautClick: () => void;
+  selectedPlanetData?: typeof GALAXY_PLANETS[number] | undefined;
 }
 
 // Scene component with all required props
-const Scene = ({ selectedPlanet, isPlanetView, onAstronautClick, onPlanetSelect }: SceneProps) => {
+const Scene = ({ selectedPlanet, isPlanetView, onAstronautClick, onPlanetSelect, selectedPlanetData }: SceneProps) => {
   const { camera } = useThree();
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
@@ -104,11 +112,14 @@ const Scene = ({ selectedPlanet, isPlanetView, onAstronautClick, onPlanetSelect 
         <directionalLight position={[10, 20, 15]} intensity={1.5} color="#ffffff" castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
         <pointLight position={[0, 5, 5]} intensity={2} color="#4f46e5" distance={30} decay={1.5} />
         <pointLight position={[0, -5, -5]} intensity={1} color="#f472b6" distance={30} decay={1.5} />
+        <NebulaBackdrop />
         <StarSystem speed={0.5} />
         <mesh position={[0, 0, 0]} visible={!isPlanetView}>
           <sphereGeometry args={[0.2, 16, 16]} />
           <meshBasicMaterial color="#4f46e5" transparent opacity={0.3} />
         </mesh>
+        <Comets />
+        <AsteroidBelt />
         
         {/* Render the filtered array of dynamic elements */}
         <group>
@@ -139,6 +150,7 @@ const GalaxyHub = () => {
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const controls = useAnimation();
   const navigate = useNavigate();
+  const { mode, setMode } = useTheme();
   
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -154,9 +166,16 @@ const GalaxyHub = () => {
     const isViewingPlanet = !!planetId;
     setIsPlanetView(isViewingPlanet);
     setShowNav(!isViewingPlanet);
+    if (isViewingPlanet) {
+      // Log to AI memory for context-aware responses
+      try { import('../services/ai').then(m => m.logPlanetVisit(planetId!)); } catch {}
+      setIsContentOpen(true);
+      if (planetId === 'ai') setIsChatOpen(true);
+    }
   };
 
   const selectedPlanetData = GALAXY_PLANETS.find(p => p.id === selectedPlanet);
+  const [isContentOpen, setIsContentOpen] = useState(false);
 
   if (!mounted) {
     return <LoadingScreen />;
@@ -171,6 +190,8 @@ const GalaxyHub = () => {
           dpr={Math.min(window.devicePixelRatio, 2)}
           className="z-0"
         >
+          <AdaptiveDpr pixelated />
+          <AdaptiveEvents />
           <Scene
             selectedPlanet={selectedPlanet}
             onPlanetSelect={handlePlanetSelect}
@@ -183,6 +204,31 @@ const GalaxyHub = () => {
 
       <AstronautChatUI isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
       <BadgeSystem isOpen={isBadgeModalOpen} onClose={() => setIsBadgeModalOpen(false)} />
+      {/* MiniMap HUD for quick navigation */}
+      <MiniMapHUD
+        selectedPlanetId={selectedPlanet}
+        onSelect={(id) => {
+          handlePlanetSelect(id);
+          setIsContentOpen(true);
+        }}
+      />
+      <KeyboardNavigator selectedPlanetId={selectedPlanet} onSelect={handlePlanetSelect} />
+
+      {/* Content Modal for selected planet */}
+      {selectedPlanetData && (
+        <ContentModal
+          isOpen={isContentOpen && isPlanetView}
+          onClose={() => setIsContentOpen(false)}
+          title={selectedPlanetData.name}
+          accent={selectedPlanetData.color}
+          content={{
+            about: <p>{selectedPlanetData.description}</p>,
+            skills: <p className="text-white/80">Skills and technologies relevant to {selectedPlanetData.name} coming soon.</p>,
+            projects: <p>Featured projects coming soon.</p>,
+            contact: <p>Reach out anytime. I would love to chat.</p>,
+          }}
+        />
+      )}
 
       <motion.nav 
         className="fixed top-0 left-0 right-0 z-50 p-4 md:p-6"
@@ -212,6 +258,16 @@ const GalaxyHub = () => {
             <motion.button onClick={() => setIsBadgeModalOpen(true)} whileHover={{ y: -2, scale: 1.1 }} className="text-white p-2 rounded-full bg-black/20 backdrop-blur-sm hover:bg-white/10 transition-colors">
               <FiAward className="w-6 h-6" />
             </motion.button>
+            <select
+              aria-label="Theme mode"
+              value={mode}
+              onChange={(e) => setMode(e.target.value as any)}
+              className="ml-2 bg-black/20 backdrop-blur-sm border border-white/10 rounded-full px-3 py-1 text-sm"
+            >
+              <option value="galaxy">Galaxy</option>
+              <option value="neon">Neon Grid</option>
+              <option value="minimal">Minimal</option>
+            </select>
           </div>
         </div>
       </motion.nav>
@@ -231,7 +287,7 @@ const GalaxyHub = () => {
                   <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl"
                     style={{ background: `radial-gradient(circle at 30% 30%, ${selectedPlanetData.color}44, ${selectedPlanetData.color}22)`, border: `2px solid ${selectedPlanetData.color}88`, boxShadow: `0 0 20px ${selectedPlanetData.color}44` }}
                   >
-                    {selectedPlanetData.icon}
+                    {(() => { const Icon = selectedPlanetData.icon; return <Icon />; })()}
                   </div>
                 </div>
                 <div className="flex-1 text-center md:text-left">

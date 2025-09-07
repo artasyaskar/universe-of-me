@@ -1,6 +1,5 @@
-// --- Mock AI Service ---
-// This service simulates an AI chatbot for local development.
-// It uses a simple keyword-based response system and has a basic memory.
+// --- AI Service ---
+// Tries a remote endpoint if configured, falls back to a local mock.
 
 interface AIContext {
   visitedPlanets: Set<string>;
@@ -29,20 +28,35 @@ const responses: Record<string, string> = {
  * @returns {Promise<string>} - A simulated AI response.
  */
 export const getAIResponse = async (message: string, context: AIContext = aiMemory): Promise<string> => {
+  const endpoint = (import.meta as any).env?.VITE_AI_ENDPOINT as string | undefined;
+  const apiKey = (import.meta as any).env?.VITE_AI_API_KEY as string | undefined;
+  if (endpoint) {
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+        },
+        body: JSON.stringify({ message, context: { visitedPlanets: Array.from(context.visitedPlanets) } }),
+      });
+      if (!res.ok) throw new Error('Bad response');
+      const data = await res.json();
+      if (typeof data?.reply === 'string') return data.reply;
+    } catch (e) {
+      // fall back to mock
+    }
+  }
+
   const lowerCaseMessage = message.toLowerCase();
-  
-  // Check for keywords in the user's message
   for (const keyword in responses) {
     if (lowerCaseMessage.includes(keyword)) {
-      // If the user mentions a planet, add it to memory
       if (['frontend', 'ai', 'projects', 'about'].includes(keyword)) {
         context.visitedPlanets.add(keyword);
       }
       return responses[keyword];
     }
   }
-
-  // Return a default response if no keywords are found
   return responses['default'];
 };
 

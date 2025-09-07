@@ -23,7 +23,7 @@ const FeaturedPlanets: React.FC = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="text-4xl font-bold text-center mb-12 font-orbitron text-white"
+        className="text-4xl font-bold text-center mb-12 font-orbitron text-gradient-purple"
       >
         Discover My Universe
       </motion.h2>
@@ -35,15 +35,19 @@ const FeaturedPlanets: React.FC = () => {
             variants={cardVariants}
             initial="hidden"
             animate="visible"
-            className="group"
+            className="group tilt"
           >
             <Link to={planet.link} className="block">
-              <div className="bg-black/50 backdrop-blur-md rounded-xl p-6 border border-blue-500/30 h-full flex flex-col justify-between transform hover:scale-105 transition-transform duration-300">
-                <div>
-                  <h3 className="text-2xl font-bold font-rajdhani text-white mb-3">{planet.name}</h3>
-                  <p className="text-gray-400 mb-4">{planet.description}</p>
+              <div className="relative glass border-gradient rounded-2xl overflow-hidden h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02]">
+                <div className="absolute inset-0 opacity-20 bg-gradient-to-tr from-fuchsia-500 via-indigo-500 to-cyan-400" />
+                <div className="relative p-6 space-y-4 tilt-inner">
+                  <div className="h-40 w-full rounded-xl bg-gradient-to-br from-black/40 to-black/10 border border-white/10 flex items-center justify-center text-sm text-gray-400">
+                    {planet.image ? 'Preview' : 'No Image'}
+                  </div>
+                  <h3 className="text-2xl font-bold font-rajdhani text-white">{planet.name}</h3>
+                  <p className="text-gray-300">{planet.description}</p>
                 </div>
-                <div className="flex items-center text-blue-400 font-semibold group-hover:text-blue-300 transition-colors">
+                <div className="relative p-6 pt-0 flex items-center text-blue-300 font-semibold group-hover:text-white transition-colors">
                   <span>Explore</span>
                   <FiArrowRight className="ml-2 transform group-hover:translate-x-1 transition-transform" />
                 </div>
