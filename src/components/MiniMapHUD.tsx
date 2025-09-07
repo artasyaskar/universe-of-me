@@ -1,6 +1,7 @@
 import { memo } from 'react';
-import { FiCircle, FiMapPin } from 'react-icons/fi';
+import { motion } from 'framer-motion';
 import { GALAXY_PLANETS } from '../data/galaxyPlanets';
+import { FiMap } from 'react-icons/fi';
 
 interface MiniMapHUDProps {
   selectedPlanetId: string | null;
@@ -8,50 +9,66 @@ interface MiniMapHUDProps {
 }
 
 const scalePosition = (pos: [number, number, number]): { x: number; y: number } => {
-  const scale = 4; // compress galaxy coords to minimap space
-  return { x: pos[0] / scale, y: pos[2] / scale };
+  const scaleFactor = 12; // Adjusted for a more compact and centered layout
+  return { x: pos[0] * scaleFactor, y: pos[2] * scaleFactor };
 };
 
 const MiniMapHUD = ({ selectedPlanetId, onSelect }: MiniMapHUDProps) => {
   return (
-    <div className="fixed right-4 bottom-4 z-40">
-      <div className="relative w-56 h-56 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-xl shadow-2xl overflow-hidden">
-        <div className="absolute inset-0 opacity-40" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(99,102,241,0.35), transparent 60%)' }} />
-        <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 opacity-10">
-          {Array.from({ length: 16 }).map((_, i) => (
-            <div key={i} className="border border-white/10" />
-          ))}
-        </div>
-        <div className="absolute inset-0 p-3">
-          <div className="relative w-full h-full">
-            {GALAXY_PLANETS.map((p) => {
-              const { x, y } = scalePosition(p.position);
-              const isActive = selectedPlanetId === p.id;
-              return (
-                <button
-                  key={p.id}
-                  title={p.name}
-                  onClick={() => onSelect(p.id)}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-transform ${isActive ? 'scale-110' : 'hover:scale-110'}`}
-                  aria-label={`Navigate to ${p.name}`}
-                  style={{ left: `calc(50% + ${x * 10}px)`, top: `calc(50% + ${y * 10}px)` }}
+    <div className="fixed bottom-6 right-6 z-50">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 1 }}
+        className="w-64 h-64 bg-black/30 backdrop-blur-lg rounded-full border-2 border-cyan-400/20 shadow-2xl shadow-cyan-500/10"
+      >
+        <div className="relative w-full h-full flex items-center justify-center">
+          {/* Central Sun representation */}
+          <div className="w-4 h-4 bg-yellow-300 rounded-full shadow-[0_0_15px_5px_rgba(253,224,71,0.5)]" />
+
+          {/* Grid lines */}
+          <div className="absolute w-full h-px bg-cyan-400/10" />
+          <div className="absolute h-full w-px bg-cyan-400/10" />
+
+          {/* Planets */}
+          {GALAXY_PLANETS.map((planet) => {
+            const { x, y } = scalePosition(planet.position);
+            const isActive = selectedPlanetId === planet.id;
+            const Icon = planet.icon;
+
+            return (
+              <motion.button
+                key={planet.id}
+                onClick={() => onSelect(planet.id)}
+                className="absolute group"
+                style={{
+                  transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
+                }}
+                whileHover={{ scale: 1.2 }}
+                animate={{ scale: isActive ? 1.2 : 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              >
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center transition-all duration-300 group-focus-visible:ring-2 group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-black group-focus-visible:ring-white"
+                  style={{
+                    backgroundColor: `${planet.color}40`,
+                    boxShadow: isActive ? `0 0 12px ${planet.color}` : 'none',
+                  }}
                 >
-                  <span
-                    className="block w-3 h-3 rounded-full shadow-[0_0_12px]"
-                    style={{ backgroundColor: p.color, boxShadow: `0 0 8px ${p.color}` }}
-                  />
-                </button>
-              );
-            })}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white/60">
-              <FiCircle />
-            </div>
-          </div>
+                  <Icon className="w-3 h-3" style={{ color: planet.color }} />
+                </div>
+                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block px-2 py-1 bg-black/70 text-white text-xs rounded-md whitespace-nowrap">
+                  {planet.name}
+                </div>
+              </motion.button>
+            );
+          })}
         </div>
-        <div className="absolute left-3 top-3 text-xs text-white/70 flex items-center gap-1">
-          <FiMapPin className="w-3 h-3" /> Map
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 text-cyan-300/70 text-xs font-mono uppercase tracking-widest flex items-center gap-2">
+          <FiMap />
+          Galaxy Map
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
