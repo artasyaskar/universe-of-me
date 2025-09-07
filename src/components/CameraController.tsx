@@ -1,47 +1,48 @@
-import { useRef, forwardRef } from 'react';
+import { useRef, forwardRef, memo } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import { useSpring, a } from '@react-spring/three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 
 interface CameraControllerProps {
-  target?: THREE.Vector3;
-  isPlanetView?: boolean;
+  target: THREE.Vector3;
+  isPlanetView: boolean;
 }
 
-const CameraController = forwardRef<OrbitControlsImpl, CameraControllerProps>(
-  ({ target = new THREE.Vector3(0, 0, 0), isPlanetView = false }, ref) => {
+const CameraControllerComponent = forwardRef<OrbitControlsImpl, CameraControllerProps>(
+  ({ target, isPlanetView }, ref) => {
     const { camera } = useThree();
-    const internalControlsRef = useRef<OrbitControlsImpl>(null);
+    const controlsRef = useRef<OrbitControlsImpl>(null);
+
+    const [{ position, target: springTarget }] = useSpring({
+      position: isPlanetView ? target.clone().add(new THREE.Vector3(0, 2, 5)) : new THREE.Vector3(0, 10, 25),
+      target: isPlanetView ? target : new THREE.Vector3(0, 0, 0),
+      config: { mass: 1, tension: 170, friction: 26, precision: 0.0001 },
+    }, [isPlanetView, target]);
 
     useFrame(() => {
-      if (internalControlsRef.current) {
-        if (isPlanetView) {
-          // Smoothly move camera to the planet
-          camera.position.lerp(target.clone().add(new THREE.Vector3(0, 2, 5)), 0.08);
-          internalControlsRef.current.target.lerp(target, 0.08);
-        } else {
-          // Smoothly return to galaxy view
-          camera.position.lerp(new THREE.Vector3(0, 10, 25), 0.06);
-          internalControlsRef.current.target.lerp(new THREE.Vector3(0, 0, 0), 0.06);
-        }
-        internalControlsRef.current.update();
+      camera.position.copy(position.get());
+      if (controlsRef.current) {
+        controlsRef.current.target.copy(springTarget.get());
+        controlsRef.current.update();
       }
     });
 
     return (
       <OrbitControls
-        ref={ref || internalControlsRef}
+        ref={controlsRef}
         args={[camera, undefined]}
         enableZoom={true}
         enablePan={!isPlanetView}
-        maxDistance={50}
-        minDistance={5}
-        target={target}
+        maxDistance={isPlanetView ? 20 : 50}
+        minDistance={isPlanetView ? 3 : 10}
+        autoRotate={!isPlanetView}
+        autoRotateSpeed={0.3}
       />
     );
   }
 );
 
-CameraController.displayName = 'CameraController';
-export default CameraController;
+CameraControllerComponent.displayName = 'CameraController';
+export default memo(CameraControllerComponent);
