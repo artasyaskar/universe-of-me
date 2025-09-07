@@ -27,36 +27,52 @@ const responses: Record<string, string> = {
  * @param {AIContext} context - The current context of the conversation.
  * @returns {Promise<string>} - A simulated AI response.
  */
-export const getAIResponse = async (message: string, context: AIContext = aiMemory): Promise<string> => {
+export const getAIResponse = async (message: string, planetId?: string | null): Promise<string> => {
+  const context = {
+    visitedPlanets: Array.from(aiMemory.visitedPlanets),
+    currentPlanet: planetId,
+  };
+
   const endpoint = (import.meta as any).env?.VITE_AI_ENDPOINT as string | undefined;
-  const apiKey = (import.meta as any).env?.VITE_AI_API_KEY as string | undefined;
   if (endpoint) {
+    // If a real AI endpoint is configured, use it
     try {
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-        },
-        body: JSON.stringify({ message, context: { visitedPlanets: Array.from(context.visitedPlanets) } }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, context }),
       });
-      if (!res.ok) throw new Error('Bad response');
+      if (!res.ok) throw new Error('AI service responded with an error.');
       const data = await res.json();
-      if (typeof data?.reply === 'string') return data.reply;
-    } catch (e) {
-      // fall back to mock
+      return data.reply || "I seem to be at a loss for words.";
+    } catch (error) {
+      console.error("AI service connection failed:", error);
+      // Fallback to mock AI if the endpoint fails
     }
   }
 
+  // Mock AI Logic
   const lowerCaseMessage = message.toLowerCase();
+
+  if (planetId) {
+    if (lowerCaseMessage.includes('tell me about') || lowerCaseMessage.includes('what is')) {
+      const planetResponses: Record<string, string> = {
+        frontend: "The Frontend Planet is a hub of user interface design and web technologies. It showcases projects built with React, Three.js, and other modern tools.",
+        ai: "This is my home, the AI & ML Planet. It represents the brain of the portfolio, featuring experiments in machine learning and neural networks.",
+        timeline: "The Timeline Planet chronicles the journey of this universe's creator, marking significant milestones in their career and education.",
+        projects: "The Projects Planet is a galaxy of its own, containing a diverse collection of completed works, from web apps to 3D experiences.",
+        about: "The 'About Me' planet provides insight into the creator's skills, background, and passions. It's the personal core of this universe.",
+      };
+      return planetResponses[planetId] || `I don't have specific information about this planet right now, but it seems interesting!`;
+    }
+  }
+  
   for (const keyword in responses) {
     if (lowerCaseMessage.includes(keyword)) {
-      if (['frontend', 'ai', 'projects', 'about'].includes(keyword)) {
-        context.visitedPlanets.add(keyword);
-      }
       return responses[keyword];
     }
   }
+
   return responses['default'];
 };
 
