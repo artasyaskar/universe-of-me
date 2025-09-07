@@ -1,213 +1,104 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 15, 15, 26;
-  --background-end-rgb: 26, 26, 46;
+  /* Default Theme: Galaxy */
+  --bg-primary: #0a0a14;
+  --bg-secondary: #1a1a2e;
+  --text-primary: #e0e0ff;
+  --text-secondary: #a0a0c0;
+  --accent-primary: #8b5cf6; /* neon-purple */
+  --accent-secondary: #2dd4bf; /* neon-teal */
+  --border-color: rgba(139, 92, 246, 0.2);
+  --shadow-color: rgba(139, 92, 246, 0.1);
+  --bg-image: radial-gradient(ellipse at bottom, rgba(139, 92, 246, 0.1) 0%, transparent 60%);
+}
+
+.theme-neon {
+  --bg-primary: #000000;
+  --bg-secondary: #111111;
+  --text-primary: #00ffde;
+  --text-secondary: #00a28d;
+  --accent-primary: #f472b6;
+  --accent-secondary: #38bdf8;
+  --border-color: rgba(0, 255, 222, 0.3);
+  --shadow-color: rgba(0, 255, 222, 0.15);
+  --bg-image:
+    linear-gradient(rgba(0, 255, 222, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 222, 0.05) 1px, transparent 1px);
+}
+
+.theme-minimal {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --accent-primary: #3b82f6;
+  --accent-secondary: #6366f1;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.2);
+  --bg-image: none;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background:
-    radial-gradient(1200px 600px at -10% -10%, rgba(99,102,241,0.15), transparent 60%),
-    radial-gradient(1000px 500px at 110% -10%, rgba(236,72,153,0.12), transparent 60%),
-    radial-gradient(800px 400px at 50% 110%, rgba(20,184,166,0.10), transparent 60%),
-    linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
-    rgb(var(--background-start-rgb));
-  min-height: 100vh;
-  overflow-x: hidden;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  background-image: var(--bg-image);
+  background-size: 40px 40px; /* For neon grid */
+  font-family: 'Rajdhani', sans-serif;
+  transition: background-color 0.5s ease;
 }
 
-/* Theme variants */
-.theme-galaxy body {
-  background:
-    radial-gradient(1200px 600px at -10% -10%, rgba(99,102,241,0.15), transparent 60%),
-    radial-gradient(1000px 500px at 110% -10%, rgba(236,72,153,0.12), transparent 60%),
-    radial-gradient(800px 400px at 50% 110%, rgba(20,184,166,0.10), transparent 60%),
-    linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
-    rgb(var(--background-start-rgb));
-}
-
-.theme-neon body {
-  background:
-    radial-gradient(1000px 500px at 20% 10%, rgba(16,185,129,0.18), transparent 60%),
-    radial-gradient(800px 400px at 80% 20%, rgba(59,130,246,0.18), transparent 60%),
-    linear-gradient(160deg, #0b0f19 0%, #0a0a10 100%);
-}
-
-.theme-minimal body {
-  background: linear-gradient(180deg, #0f1117 0%, #0b0d12 100%);
+/* Apply theme variables to Tailwind components */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--text-primary);
+  }
+  p {
+    color: var(--text-secondary);
+  }
+  a {
+    color: var(--accent-secondary);
+    transition: color 0.3s ease;
+  }
+  a:hover {
+    filter: brightness(1.2);
+  }
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
-  height: 8px;
 }
-
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  background: var(--bg-secondary);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background-color: var(--accent-primary);
   border-radius: 4px;
-  transition: background 0.3s ease;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
+/* Update components to use CSS variables */
+.bg-cosmic-dark { background-color: var(--bg-primary); }
+.text-cosmic-light { color: var(--text-primary); }
+.border-neon-purple\/20 { border-color: var(--border-color); }
+.shadow-neon-purple\/10 { box-shadow: 0 0 20px var(--shadow-color); }
+.bg-black\/30 { background-color: rgba(0,0,0,0.3); } /* Keep some for transparency effects */
+.backdrop-blur-lg { --tw-backdrop-blur: blur(16px); }
 
-/* Custom Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes glow {
-  0%, 100% { text-shadow: 0 0 5px currentColor; }
-  50% { text-shadow: 0 0 20px currentColor; }
-}
-
-/* Custom Classes */
-.glow-text {
-  animation: glow 2s ease-in-out infinite alternate;
-}
-
-.planet-hover {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.planet-hover:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
-}
-
-/* Three.js Canvas */
-.canvas-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-}
-
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-}
-
-p, li, a, button, input, textarea, select {
-  font-family: 'Inter', sans-serif;
-}
-
-/* Button Styles */
-.btn-primary {
-  @apply px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500;
-}
-
-/* Form Elements */
-.input-field {
-  @apply w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200;
-}
-
-/* Card Styles */
-.card {
-  @apply bg-gray-800/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/40 hover:border-blue-500/60 transition-all duration-300 shadow-[0_0_0_0_rgba(0,0,0,0)] hover:shadow-[0_0_30px_0_rgba(59,130,246,0.25)];
-}
-
-/* Animation Classes */
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-glow {
-  animation: glow 2s ease-in-out infinite alternate;
-}
-
-/* Glass Utilities */
-.glass {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl;
-}
-
-/* Gradient Text Utilities */
-.text-gradient-purple {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-fuchsia-400 to-indigo-400;
-}
-.text-gradient-blue {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400;
-}
-
-/* Button Presets */
-.btn-gradient {
-  @apply relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white uppercase tracking-wider overflow-hidden rounded-full transition-all duration-300;
-  background-image: linear-gradient(90deg, #7c3aed, #2563eb, #06b6d4);
-  background-size: 200% 100%;
-}
-.btn-gradient:hover { background-position: 100% 0; }
-.btn-outline {
-  @apply border-2 border-blue-500/70 hover:bg-blue-500/10 rounded-full transition-all duration-300;
-}
-
-/* Accent orbs */
-.orb {
-  position: absolute;
-  width: 28rem;
-  height: 28rem;
+/* Example of a themed button */
+.themed-button {
+  background-color: var(--accent-primary);
+  color: var(--bg-primary);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
   border-radius: 9999px;
-  filter: blur(60px);
-  opacity: 0.3;
+  transition: filter 0.3s ease;
 }
-.orb-purple { background: radial-gradient(circle at 30% 30%, rgba(168,85,247,0.7), transparent 60%); }
-.orb-blue { background: radial-gradient(circle at 70% 30%, rgba(59,130,246,0.6), transparent 60%); }
-.orb-teal { background: radial-gradient(circle at 50% 70%, rgba(45,212,191,0.6), transparent 60%); }
-
-/* Tilting cards */
-.tilt {
-  transform-style: preserve-3d;
-  perspective: 1000px;
-}
-.tilt:hover .tilt-inner {
-  transform: translateZ(14px);
-}
-
-/* Subtle borders */
-.border-gradient {
-  position: relative;
-}
-.border-gradient::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 1rem;
-  padding: 1px;
-  background: linear-gradient(90deg, rgba(59,130,246,0.4), rgba(147,51,234,0.4));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-}
-
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .container {
-    @apply px-4;
-  }
-  
-  h1 {
-    @apply text-4xl;
-  }
-  
-  h2 {
-    @apply text-3xl;
-  }
+.themed-button:hover {
+  filter: brightness(1.1);
 }
