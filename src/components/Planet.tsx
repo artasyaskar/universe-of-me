@@ -1,137 +1,118 @@
-import { useRef, useMemo, useState } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { Text } from '@react-three/drei';
+import { Html } from '@react-three/drei';
+import { useControls } from 'leva';
+import { planetVertexShader, planetFragmentShader } from './visuals/shaders';
 
 interface PlanetProps {
-  position: [number, number, number];
+  id?: string;
+  name: string;
   size?: number;
   color: string;
-  name: string;
-  speed?: number;
-  onClick?: () => void;
-  isSelected?: boolean;
+  position: [number, number, number];
   orbitRadius?: number;
   orbitSpeed?: number;
   rotationSpeed?: number;
-  id?: string;
   ring?: boolean;
   ringColor?: string;
   ringSize?: number;
+  isSelected?: boolean;
+  isHovered?: boolean;
+  onClick?: () => void;
+  onPointerOver?: () => void;
+  onPointerOut?: () => void;
 }
 
 export default function Planet({
-  position,
+  name,
   size = 1,
   color,
-  name,
-  speed = 0.5,
-  onClick,
-  isSelected = false,
+  position,
   orbitRadius = 0,
   orbitSpeed = 0.2,
+  rotationSpeed = 0.5,
   ring = false,
   ringColor = '#ffffff',
   ringSize = 1.5,
+  isSelected = false,
+  isHovered = false,
+  onClick,
+  onPointerOver,
+  onPointerOut,
 }: PlanetProps) {
-  const ringRef = useRef<THREE.Mesh>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const orbitRef = useRef<THREE.Group>(null);
-  const [hovered, setHovered] = useState(false);
-  const glowRef = useRef<THREE.Mesh>(null);
 
-  // Generate random features for the planet
-  const features = useMemo(() => ({
-    rotationSpeed: (Math.random() * 0.5 + 0.5) * speed,
-  }), [speed]);
+  const { glowPower, glowMultiplier } = useControls(
+    'Planet Shaders',
+    {
+      glowPower: { value: 3.0, min: 0.1, max: 10.0, step: 0.1 },
+      glowMultiplier: { value: 1.5, min: 0.1, max: 5.0, step: 0.1 },
+    },
+    { collapsed: true }
+  );
 
-  // Animate planet
+  const shaderMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uColor: { value: new THREE.Color(color) },
+        uGlowPower: { value: glowPower },
+        uGlowMultiplier: { value: glowMultiplier },
+        uHover: { value: isHovered || isSelected ? 1.0 : 0.0 },
+      },
+      vertexShader: planetVertexShader,
+      fragmentShader: planetFragmentShader,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+    });
+  }, [color, glowPower, glowMultiplier, isHovered, isSelected]);
+
   useFrame(({ clock }) => {
     if (meshRef.current) {
-      // Rotate the planet
-      meshRef.current.rotation.y = clock.getElapsedTime() * features.rotationSpeed;
-
-      // If planet has an orbit, move it along the orbit
-      if (orbitRef.current && orbitRadius > 0) {
-        const time = clock.getElapsedTime() * orbitSpeed;
-        orbitRef.current.position.x = Math.sin(time) * orbitRadius;
-        orbitRef.current.position.z = Math.cos(time) * orbitRadius;
-      }
+      meshRef.current.rotation.y = clock.getElapsedTime() * rotationSpeed;
     }
-    if (glowRef.current && (hovered || isSelected)) {
-      const pulse = 1 + Math.sin(clock.getElapsedTime() * 3) * 0.05;
-      glowRef.current.scale.setScalar(pulse * (size * 1.1));
+    if (orbitRef.current && orbitRadius > 0) {
+      const time = clock.getElapsedTime() * orbitSpeed;
+      orbitRef.current.position.x = Math.sin(time) * orbitRadius;
+      orbitRef.current.position.z = Math.cos(time) * orbitRadius;
     }
   });
 
-  const glowScale = hovered || isSelected ? 1.15 : 1;
+  const scale = isHovered || isSelected ? 1.15 : 1;
 
   return (
     <group position={position} ref={orbitRef}>
-      <group>
-        {/* Planet */}
-        <mesh
-          ref={meshRef}
-          onClick={onClick}
-          onPointerOver={() => setHovered(true)}
-          onPointerOut={() => setHovered(false)}
-          scale={glowScale}
-          castShadow
-          receiveShadow
-        >
-          <sphereGeometry args={[size, 32, 32]} />
-          <meshStandardMaterial
-            color={color}
-            emissive={color}
-            emissiveIntensity={hovered || isSelected ? 1.5 : 0.5}
-            roughness={0.7}
-            metalness={0.3}
-            toneMapped={false}
-          />
+      <group
+        onClick={onClick}
+        onPointerOver={onPointerOver}
+        onPointerOut={onPointerOut}
+      >
+        <mesh ref={meshRef} scale={scale} castShadow receiveShadow>
+          <sphereGeometry args={[size, 64, 64]} />
+          <primitive object={shaderMaterial} />
         </mesh>
 
-        {/* Atmospheric glow */}
-        <mesh ref={glowRef} scale={glowScale * 1.1}>
-          <sphereGeometry args={[size * 1.1, 32, 32]} />
-          <meshBasicMaterial color={color} transparent opacity={0.08} blending={THREE.AdditiveBlending} />
-        </mesh>
+        {isHovered && (
+          <Html distanceFactor={10}>
+            <div className="bg-black/50 text-white text-xs p-2 rounded-md backdrop-blur-sm">
+              {name}
+            </div>
+          </Html>
+        )}
 
-        {/* Ring */}
         {ring && (
-          <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[size * ringSize * 0.8, size * ringSize, 64]} />
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[size * ringSize * 0.8, size * ringSize, 128]} />
             <meshStandardMaterial
               color={ringColor}
-              emissive={isSelected ? ringColor : undefined}
-              emissiveIntensity={isSelected ? 0.3 : 0}
-              opacity={0.5}
+              opacity={0.7}
+              transparent
               side={THREE.DoubleSide}
-              blending={THREE.AdditiveBlending}
             />
           </mesh>
         )}
       </group>
-
-      {/* Planet label */}
-      {(hovered || isSelected) && (
-        <Text
-          position={[0, size * 2, 0]}
-          color="white"
-          fontSize={0.5}
-          maxWidth={5}
-          lineHeight={1}
-          letterSpacing={0.1}
-          textAlign="center"
-          // Use default font to avoid external font load failures
-          anchorX="center"
-          anchorY="middle"
-          outlineWidth={0.01}
-          outlineColor="black"
-          outlineOpacity={0.8}
-        >
-          {name}
-        </Text>
-      )}
     </group>
   );
 }
