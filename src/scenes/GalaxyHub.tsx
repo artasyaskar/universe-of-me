@@ -1,8 +1,7 @@
 import { Suspense, useRef, useState, useEffect, lazy } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import { Text, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei';
-import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { AdaptiveDpr, AdaptiveEvents } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { FiArrowLeft, FiGithub, FiLinkedin, FiMail, FiAward } from 'react-icons/fi';
@@ -17,133 +16,92 @@ import { GALAXY_PLANETS } from '../data/galaxyPlanets';
 import CtaButton from '../components/CtaButton';
 import MiniMapHUD from '../components/MiniMapHUD';
 import CameraController from '../components/CameraController';
+import Sun from '../components/visuals/Sun';
 const ContentModal = lazy(() => import('../components/ContentModal'));
 const NebulaBackdrop = lazy(() => import('../components/visuals/NebulaBackdrop'));
 const Comets = lazy(() => import('../components/visuals/Comets'));
 const AsteroidBelt = lazy(() => import('../components/visuals/AsteroidBelt'));
 import KeyboardNavigator from '../components/KeyboardNavigator';
 
-// Scene component props
 interface SceneProps {
   selectedPlanet: string | null;
+  hoveredPlanet: string | null;
   onPlanetSelect: (planetId: string | null) => void;
+  onPlanetHover: (planetId: string | null) => void;
   isPlanetView: boolean;
   onAstronautClick: () => void;
-  selectedPlanetData?: typeof GALAXY_PLANETS[number] | undefined;
 }
 
-// Scene component with all required props
-const Scene = ({ selectedPlanet, isPlanetView, onAstronautClick, onPlanetSelect, selectedPlanetData }: SceneProps) => {
-  const { camera } = useThree();
-  const controlsRef = useRef<OrbitControlsImpl>(null);
+import { Line } from '@react-three/drei';
 
-  const handlePlanetClick = (planetId: string, position: [number, number, number]) => {
-    onPlanetSelect(planetId);
-    if (controlsRef.current) {
-      const target = new THREE.Vector3(...position);
-      camera.position.set(target.x, target.y + 2, target.z + 5);
-      controlsRef.current.target.copy(target);
-    }
-  };
+const Orbit = ({ radius, color, visible }: { radius: number; color: string; visible: boolean }) => {
+  const points = [];
+  for (let i = 0; i <= 128; i++) {
+    const angle = (i / 128) * Math.PI * 2;
+    points.push(new THREE.Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * radius));
+  }
+  return <Line points={points} color={color} lineWidth={2} visible={visible} dashed dashSize={0.5} gapSize={0.5} />;
+};
 
-  // --- Array Filtering Method ---
-  const sceneElements = [
-    // Glowing center orb
-    !isPlanetView ? (
-      <mesh position={[0, 0, 0]} key="center-orb">
-        <sphereGeometry args={[0.5, 32, 32]} />
-        <meshStandardMaterial
-          color="#4f46e5"
-          emissive="#4f46e5"
-          emissiveIntensity={0.5}
-          transparent
-          opacity={0.5}
-        />
-      </mesh>
-    ) : null,
-
-    // Planets, their orbits, and labels
-    ...GALAXY_PLANETS.flatMap((planet) => {
-      const isSelected = selectedPlanet === planet.id;
-      return [
-        <Planet
-          key={planet.id}
-          position={planet.position}
-          size={planet.size}
-          color={planet.color}
-          name={planet.name}
-          speed={planet.rotationSpeed}
-          orbitRadius={planet.orbitRadius}
-          orbitSpeed={planet.orbitSpeed}
-          isSelected={isSelected}
-          onClick={() => handlePlanetClick(planet.id, planet.position)}
-          ring={planet.ring}
-          ringColor={planet.ringColor}
-          ringSize={planet.ringSize}
-        />,
-        !isPlanetView ? (
-          <mesh key={`orbit-${planet.id}`} rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[planet.orbitRadius * 0.95, planet.orbitRadius * 1.05, 128]} />
-            <meshBasicMaterial color={planet.color} transparent opacity={0.1} side={THREE.DoubleSide} />
-          </mesh>
-        ) : null,
-        !isPlanetView ? (
-          <Text
-            key={`label-${planet.id}`}
-            position={[planet.position[0] * 1.2, planet.position[1] + planet.size * 1.5, planet.position[2] * 1.2]}
-            fontSize={0.5} color="white" anchorX="center" anchorY="middle"
-            outlineWidth={0.01} outlineColor="#000000" outlineOpacity={0.8}
-          >
-            {planet.name}
-          </Text>
-        ) : null,
-      ];
-    }),
-  ].filter(Boolean);
-
+const Scene = ({
+  selectedPlanet,
+  hoveredPlanet,
+  isPlanetView,
+  onPlanetSelect,
+  onPlanetHover,
+  onAstronautClick,
+}: SceneProps) => {
+  const selectedPlanetData = GALAXY_PLANETS.find((p) => p.id === selectedPlanet);
 
   return (
     <>
       <EffectComposer>
-        <Bloom intensity={1.2} luminanceThreshold={0.8} luminanceSmoothing={0.9} height={300} />
-        
-        {/* Lights and Static elements */}
-        <ambientLight intensity={0.2} color="#40407a" />
-        <directionalLight position={[10, 20, 15]} intensity={1.5} color="#ffffff" castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
-        <pointLight position={[0, 5, 5]} intensity={2} color="#4f46e5" distance={30} decay={1.5} />
-        <pointLight position={[0, -5, -5]} intensity={1} color="#f472b6" distance={30} decay={1.5} />
-        <NebulaBackdrop />
-        <StarSystem speed={0.5} />
-        <mesh position={[0, 0, 0]} visible={!isPlanetView}>
-          <sphereGeometry args={[0.2, 16, 16]} />
-          <meshBasicMaterial color="#4f46e5" transparent opacity={0.3} />
-        </mesh>
-        <Comets />
-        <AsteroidBelt />
-        
-        {/* Render the filtered array of dynamic elements */}
-        <group>
-          {sceneElements}
-        </group>
-
-        <CameraController
-          ref={controlsRef}
-          target={selectedPlanetData ? new THREE.Vector3(...selectedPlanetData.position) : new THREE.Vector3(0, 0, 0)}
-          isPlanetView={isPlanetView}
-        />
-        <AstronautModel onClick={onAstronautClick} />
-        <fog attach="fog" args={['#0f172a', 25, 40]} />
+        <Bloom intensity={1.5} luminanceThreshold={0.9} luminanceSmoothing={0.9} height={400} />
       </EffectComposer>
+
+      <ambientLight intensity={0.1} color="#a0a0ff" />
+      {!isPlanetView && <Sun />}
+
+      <NebulaBackdrop />
+      <StarSystem speed={0.3} />
+      <Comets />
+      <AsteroidBelt />
+
+      {GALAXY_PLANETS.map((planet) => (
+        <group key={planet.id}>
+          <Planet
+            {...planet}
+            isSelected={selectedPlanet === planet.id}
+            isHovered={hoveredPlanet === planet.id}
+            onClick={() => onPlanetSelect(planet.id)}
+            onPointerOver={() => onPlanetHover(planet.id)}
+            onPointerOut={() => onPlanetHover(null)}
+          />
+          <Orbit
+            radius={planet.orbitRadius}
+            color={planet.color}
+            visible={!isPlanetView && (selectedPlanet === planet.id || hoveredPlanet === planet.id)}
+          />
+        </group>
+      ))}
+
+      <CameraController
+        target={selectedPlanetData ? new THREE.Vector3(...selectedPlanetData.position) : new THREE.Vector3(0, 0, 0)}
+        isPlanetView={isPlanetView}
+      />
+      <AstronautModel onClick={onAstronautClick} />
+      <fog attach="fog" args={['#0a0a14', 30, 50]} />
     </>
   );
 };
 
 
-// Main GalaxyHub component (assuming it's defined below as before)
+// Main GalaxyHub component
 const GalaxyHub = () => {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
+  const [hoveredPlanet, setHoveredPlanet] = useState<string | null>(null);
   const [isPlanetView, setIsPlanetView] = useState(false);
   const [showNav, setShowNav] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -151,7 +109,7 @@ const GalaxyHub = () => {
   const controls = useAnimation();
   const navigate = useNavigate();
   const { mode, setMode } = useTheme();
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setMounted(true);
@@ -167,14 +125,19 @@ const GalaxyHub = () => {
     setIsPlanetView(isViewingPlanet);
     setShowNav(!isViewingPlanet);
     if (isViewingPlanet) {
-      // Log to AI memory for context-aware responses
-      try { import('../services/ai').then(m => m.logPlanetVisit(planetId!)); } catch {}
+      try {
+        import('../services/ai').then((m) => m.logPlanetVisit(planetId!));
+      } catch {}
       setIsContentOpen(true);
       if (planetId === 'ai') setIsChatOpen(true);
     }
   };
 
-  const selectedPlanetData = GALAXY_PLANETS.find(p => p.id === selectedPlanet);
+  const handlePlanetHover = (planetId: string | null) => {
+    setHoveredPlanet(planetId);
+  };
+
+  const selectedPlanetData = GALAXY_PLANETS.find((p) => p.id === selectedPlanet);
   const [isContentOpen, setIsContentOpen] = useState(false);
 
   if (!mounted) {
@@ -184,9 +147,9 @@ const GalaxyHub = () => {
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
       <Suspense fallback={<LoadingScreen />}>
-        <Canvas 
+        <Canvas
           camera={{ position: [0, 10, 25], fov: 50, near: 0.1, far: 1000 }}
-          gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
           dpr={Math.min(window.devicePixelRatio, 2)}
           className="z-0"
         >
@@ -194,15 +157,20 @@ const GalaxyHub = () => {
           <AdaptiveEvents />
           <Scene
             selectedPlanet={selectedPlanet}
+            hoveredPlanet={hoveredPlanet}
             onPlanetSelect={handlePlanetSelect}
+            onPlanetHover={handlePlanetHover}
             isPlanetView={isPlanetView}
             onAstronautClick={() => setIsChatOpen(true)}
-            selectedPlanetData={selectedPlanetData}
           />
         </Canvas>
       </Suspense>
 
-      <AstronautChatUI isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <AstronautChatUI
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        selectedPlanetId={selectedPlanet}
+      />
       <BadgeSystem isOpen={isBadgeModalOpen} onClose={() => setIsBadgeModalOpen(false)} />
       {/* MiniMap HUD for quick navigation */}
       <MiniMapHUD
@@ -215,20 +183,11 @@ const GalaxyHub = () => {
       <KeyboardNavigator selectedPlanetId={selectedPlanet} onSelect={handlePlanetSelect} />
 
       {/* Content Modal for selected planet */}
-      {selectedPlanetData && (
-        <ContentModal
-          isOpen={isContentOpen && isPlanetView}
-          onClose={() => setIsContentOpen(false)}
-          title={selectedPlanetData.name}
-          accent={selectedPlanetData.color}
-          content={{
-            about: <p>{selectedPlanetData.description}</p>,
-            skills: <p className="text-white/80">Skills and technologies relevant to {selectedPlanetData.name} coming soon.</p>,
-            projects: <p>Featured projects coming soon.</p>,
-            contact: <p>Reach out anytime. I would love to chat.</p>,
-          }}
-        />
-      )}
+      <ContentModal
+        isOpen={isContentOpen && isPlanetView}
+        onClose={() => setIsContentOpen(false)}
+        planet={selectedPlanetData || null}
+      />
 
       <motion.nav 
         className="fixed top-0 left-0 right-0 z-50 p-4 md:p-6"
