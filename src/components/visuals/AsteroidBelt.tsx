@@ -1,5 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { InstancedMesh, Icosahedron } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface AsteroidBeltProps {
@@ -10,42 +11,59 @@ interface AsteroidBeltProps {
   color?: string;
 }
 
-export default function AsteroidBelt({ innerRadius = 8, outerRadius = 14, count = 400, speed = 0.2, color = '#94a3b8' }: AsteroidBeltProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const rocks = useMemo(() => {
-    const items = new Array(count).fill(0).map(() => {
-      const r = innerRadius + Math.random() * (outerRadius - innerRadius);
-      const angle = Math.random() * Math.PI * 2;
-      const y = (Math.random() - 0.5) * 0.8;
-      const scale = Math.random() * 0.15 + 0.03;
-      return { r, angle, y, scale };
-    });
-    return items;
+const dummy = new THREE.Object3D();
+
+export default function AsteroidBelt({
+  innerRadius = 10,
+  outerRadius = 18,
+  count = 500,
+  speed = 0.1,
+  color = '#888888',
+}: AsteroidBeltProps) {
+  const instancedMeshRef = useRef<THREE.InstancedMesh>(null);
+
+  const particles = useMemo(() => {
+    const temp = [];
+    for (let i = 0; i < count; i++) {
+      const t = Math.random() * 100;
+      const factor = innerRadius + Math.random() * (outerRadius - innerRadius);
+      const s = 0.1 + Math.random() * 0.2;
+      const x = (Math.random() - 0.5) * factor;
+      const y = (Math.random() - 0.5) * 0.5;
+      const z = (Math.random() - 0.5) * factor;
+      temp.push({ t, factor, s, x, y, z });
+    }
+    return temp;
   }, [count, innerRadius, outerRadius]);
 
-  useFrame((_, delta) => {
-    rocks.forEach((rock, i) => {
-      rock.angle += speed * delta * (0.5 + Math.random() * 0.5);
-      const x = Math.cos(rock.angle) * rock.r;
-      const z = Math.sin(rock.angle) * rock.r;
-      const m = groupRef.current?.children[i] as THREE.Mesh | undefined;
-      if (m) {
-        m.position.set(x, rock.y, z);
-        m.rotation.x += 0.01;
-        m.rotation.y += 0.02;
-      }
+  useFrame((state, delta) => {
+    if (!instancedMeshRef.current) return;
+
+    particles.forEach((particle, i) => {
+      let { t, factor, s, x, y, z } = particle;
+      t = particle.t += delta * speed;
+      const a = Math.cos(t) + Math.sin(t * 1) / 10;
+      const b = Math.sin(t) + Math.cos(t * 2) / 10;
+      const p = (t / 10) * Math.PI;
+
+      dummy.position.set(
+        x + a * factor,
+        y + b * factor,
+        z + Math.cos(p) * factor
+      );
+      dummy.scale.setScalar(s);
+      dummy.rotation.set(s * 5, s * 5, s * 5);
+      dummy.updateMatrix();
+      instancedMeshRef.current!.setMatrixAt(i, dummy.matrix);
     });
+    instancedMeshRef.current.instanceMatrix.needsUpdate = true;
   });
 
   return (
-    <group ref={groupRef}>
-      {rocks.map((rock, i) => (
-        <mesh key={i} scale={rock.scale} castShadow receiveShadow>
-          <icosahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial color={color} roughness={0.9} metalness={0.1} />
-        </mesh>
-      ))}
-    </group>
+    <InstancedMesh ref={instancedMeshRef} args={[undefined, undefined, count]}>
+      <Icosahedron args={[1, 0]} />
+      <meshStandardMaterial color={color} roughness={0.8} metalness={0.2} />
+    </InstancedMesh>
   );
 }
 
