@@ -41,17 +41,22 @@ export const getStars = async () => {
     return { data: mockStars, error: null };
   }
 
-  const { data, error } = await supabase
-    .from('stars')
-    .select('id, position, note')
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('stars')
+      .select('id, position, note')
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching stars:', error);
-    return { data: null, error };
+    if (error) {
+      console.warn('Supabase table not found, falling back to mock data:', error.message);
+      return { data: mockStars, error: null };
+    }
+
+    return { data, error };
+  } catch (err) {
+    console.warn('Supabase connection failed, falling back to mock data:', err);
+    return { data: mockStars, error: null };
   }
-
-  return { data, error };
 };
 
 // --- Badge System ---

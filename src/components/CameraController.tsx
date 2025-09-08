@@ -1,7 +1,7 @@
-import { useRef, forwardRef, memo } from 'react';
+import { useRef, memo } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { useSpring, a } from '@react-spring/three';
+import { useSpring } from '@react-spring/three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 
@@ -10,8 +10,7 @@ interface CameraControllerProps {
   isPlanetView: boolean;
 }
 
-const CameraControllerComponent = forwardRef<OrbitControlsImpl, CameraControllerProps>(
-  ({ target, isPlanetView }, ref) => {
+const CameraControllerComponent = ({ target, isPlanetView }: CameraControllerProps) => {
     const { camera } = useThree();
     const controlsRef = useRef<OrbitControlsImpl>(null);
 
@@ -22,9 +21,9 @@ const CameraControllerComponent = forwardRef<OrbitControlsImpl, CameraController
     }, [isPlanetView, target]);
 
     useFrame(() => {
-      camera.position.copy(position.get());
+      camera.position.copy(position as any);
       if (controlsRef.current) {
-        controlsRef.current.target.copy(springTarget.get());
+        controlsRef.current.target.copy(springTarget as any);
         controlsRef.current.update();
       }
     });
@@ -39,10 +38,22 @@ const CameraControllerComponent = forwardRef<OrbitControlsImpl, CameraController
         minDistance={isPlanetView ? 3 : 10}
         autoRotate={!isPlanetView}
         autoRotateSpeed={0.3}
+        touches={{
+          ONE: 1, // TOUCH_ROTATE
+          TWO: 2  // TOUCH_DOLLY_PAN
+        }}
+        mouseButtons={{
+          LEFT: 0, // Rotate
+          MIDDLE: 1, // Zoom
+          RIGHT: 2 // Pan
+        }}
+        wheel={true}
+        wheelSpeed={0.5}
+        enableDamping={true}
+        dampingFactor={0.05}
       />
     );
-  }
-);
+  };
 
 CameraControllerComponent.displayName = 'CameraController';
 export default memo(CameraControllerComponent);

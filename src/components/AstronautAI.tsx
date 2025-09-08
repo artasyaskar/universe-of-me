@@ -42,7 +42,7 @@ export function AstronautModel({ onClick }: AstronautModelProps) {
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
     >
-      <motion.group scale={hovered ? 1.1 : 1} transition={{ type: 'spring', stiffness: 300 }}>
+      <group scale={hovered ? 1.1 : 1}>
         <mesh castShadow>
           <capsuleGeometry args={[0.3, 0.8, 4, 8]} />
           <meshStandardMaterial color="#E0E0E0" roughness={0.1} metalness={0.9} />
@@ -57,7 +57,7 @@ export function AstronautModel({ onClick }: AstronautModelProps) {
             roughness={0.2}
           />
         </mesh>
-      </motion.group>
+      </group>
     </group>
   );
 }

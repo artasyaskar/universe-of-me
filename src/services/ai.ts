@@ -34,12 +34,17 @@ export const getAIResponse = async (message: string, planetId?: string | null): 
   };
 
   const endpoint = (import.meta as any).env?.VITE_AI_ENDPOINT as string | undefined;
+  const apiKey = (import.meta as any).env?.VITE_AI_API_KEY as string | undefined;
   if (endpoint) {
     // If a real AI endpoint is configured, use it
     try {
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          // Send API key headers if configured (e.g., Supabase Edge Functions)
+          ...(apiKey ? { apikey: apiKey, Authorization: `Bearer ${apiKey}` } : {}),
+        },
         body: JSON.stringify({ message, context }),
       });
       if (!res.ok) throw new Error('AI service responded with an error.');

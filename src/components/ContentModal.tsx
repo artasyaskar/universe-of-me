@@ -46,8 +46,7 @@ const ContentModal = ({ isOpen, onClose, planet }: ContentModalProps) => {
           className="fixed inset-0 z-50 overflow-y-auto"
         >
           <div className="flex items-center justify-center min-h-screen p-4">
-            <Dialog.Overlay
-              as={motion.div}
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { duration: 0.3 } }}
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
@@ -61,7 +60,10 @@ const ContentModal = ({ isOpen, onClose, planet }: ContentModalProps) => {
               className="relative z-10 w-full max-w-3xl p-8 bg-cosmic-dark/80 backdrop-blur-xl border border-neon-purple/20 rounded-2xl shadow-2xl shadow-neon-purple/10"
             >
               <Dialog.Title className="text-3xl font-bold font-orbitron text-white mb-2 flex items-center">
-                <planet.icon className="w-8 h-8 mr-4" style={{ color: planet.color }} />
+                {(() => {
+                  const IconComponent = planet.icon;
+                  return <IconComponent className="w-8 h-8 mr-4" style={{ color: planet.color }} />;
+                })()}
                 {planet.name}
               </Dialog.Title>
               <Dialog.Description className="text-gray-400 mb-6">{planet.description}</Dialog.Description>

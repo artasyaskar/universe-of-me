@@ -17,9 +17,14 @@ const generateRandomStars = (count: number, radius: number): Float32Array => {
     const r = radius * (Math.random() * 0.5 + 0.5); // Distribute stars more evenly
     const theta = Math.random() * 2 * Math.PI;
     const phi = Math.acos(2 * Math.random() - 1);
-    positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-    positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-    positions[i * 3 + 2] = r * Math.cos(phi);
+    const x = r * Math.sin(phi) * Math.cos(theta);
+    const y = r * Math.sin(phi) * Math.sin(theta);
+    const z = r * Math.cos(phi);
+    
+    // Validate values to prevent NaN
+    positions[i * 3] = isFinite(x) ? x : 0;
+    positions[i * 3 + 1] = isFinite(y) ? y : 0;
+    positions[i * 3 + 2] = isFinite(z) ? z : 0;
   }
   return positions;
 };
@@ -50,7 +55,14 @@ export default function StarSystem({ speed = 0.1 }: StarSystemProps) {
   // Create star positions from the fetched data
   const positions = useMemo(() => {
     if (loading || stars.length === 0) return new Float32Array(0);
-    const pos = stars.flatMap(star => star.position);
+    const pos = stars.flatMap(star => {
+      // Validate position values to prevent NaN
+      const [x, y, z] = star.position;
+      if (isFinite(x) && isFinite(y) && isFinite(z)) {
+        return [x, y, z];
+      }
+      return [0, 0, 0]; // Fallback for invalid positions
+    });
     return new Float32Array(pos);
   }, [stars, loading]);
 

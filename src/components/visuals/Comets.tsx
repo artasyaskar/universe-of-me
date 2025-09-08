@@ -21,7 +21,7 @@ export default function Comets({ count = 12, radius = 40, speed = 6, color = '#9
     }));
   }, [count, radius, speed]);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     trails.forEach((t, i) => {
       t.angle += t.speed * delta;
       const x = Math.cos(t.angle) * t.distance;

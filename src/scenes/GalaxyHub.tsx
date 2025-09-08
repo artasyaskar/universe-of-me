@@ -1,4 +1,4 @@
-import { Suspense, useRef, useState, useEffect, lazy } from 'react';
+import { Suspense, useState, useEffect, lazy } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { AdaptiveDpr, AdaptiveEvents } from '@react-three/drei';
@@ -119,6 +119,34 @@ const GalaxyHub = () => {
     return () => clearTimeout(timer);
   }, [controls]);
 
+  // Handle WebGL context loss
+  useEffect(() => {
+    const handleContextLost = (event: Event) => {
+      event.preventDefault();
+      console.warn('WebGL context lost, attempting to restore...');
+    };
+
+    const handleContextRestored = () => {
+      console.log('WebGL context restored');
+      // Force re-render by updating state
+      setMounted(false);
+      setTimeout(() => setMounted(true), 100);
+    };
+
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      canvas.addEventListener('webglcontextlost', handleContextLost);
+      canvas.addEventListener('webglcontextrestored', handleContextRestored);
+    }
+
+    return () => {
+      if (canvas) {
+        canvas.removeEventListener('webglcontextlost', handleContextLost);
+        canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+      }
+    };
+  }, []);
+
   const handlePlanetSelect = (planetId: string | null) => {
     setSelectedPlanet(planetId);
     const isViewingPlanet = !!planetId;
@@ -149,9 +177,26 @@ const GalaxyHub = () => {
       <Suspense fallback={<LoadingScreen />}>
         <Canvas
           camera={{ position: [0, 10, 25], fov: 50, near: 0.1, far: 1000 }}
-          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-          dpr={Math.min(window.devicePixelRatio, 2)}
+          gl={{ 
+            antialias: false, // Disable antialiasing for better performance
+            alpha: true, 
+            powerPreference: 'high-performance',
+            preserveDrawingBuffer: false,
+            failIfMajorPerformanceCaveat: false,
+            stencil: false,
+            depth: true
+          }}
+          dpr={Math.min(window.devicePixelRatio, 1.5)} // Reduce DPR for better performance
           className="z-0"
+          frameloop="demand" // Only render when needed
+          onCreated={({ gl }) => {
+            gl.setClearColor('#0a0a14', 1.0);
+            gl.shadowMap.enabled = false; // Disable shadows for better performance
+            gl.outputColorSpace = THREE.SRGBColorSpace;
+          }}
+          onError={(error) => {
+            console.error('Canvas error:', error);
+          }}
         >
           <AdaptiveDpr pixelated />
           <AdaptiveEvents />

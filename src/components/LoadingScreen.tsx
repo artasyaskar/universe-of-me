@@ -15,21 +15,7 @@ const LoadingScreen: React.FC = () => {
     },
   };
 
-  const dotVariants = {
-    start: {
-      y: '0%',
-    },
-    end: {
-      y: '100%',
-    },
-  };
-
-  const dotTransition = {
-    duration: 0.5,
-    repeat: Infinity,
-    repeatType: 'reverse' as const,
-    ease: 'easeInOut',
-  };
+  // Removed unused dotVariants and dotTransition
 
   return (
     <div className="fixed inset-0 bg-gray-900 flex items-center justify-center z-50">
